@@ -41,7 +41,7 @@ export const main = async () => {
       name: "listsToScrape",
       message: "What lists would you like to scrape?",
       choices: boardLists.map((list: any) => {
-        return { name: list.name, value: list.id, checked: false };
+        return { name: list.name, value: list, checked: false };
       }),
     },
   ]);
@@ -49,36 +49,73 @@ export const main = async () => {
 
   // TODO: actions for entire lists to set the default?
   for (let list of listsToScrape) {
+    const { listAction } = await inquirer.prompt([
+      {
+        type: "expand",
+        name: "listAction",
+        message: `What would you like to do with ${list.name}?`,
+        choices: [
+          {
+            key: "w",
+            name: "Add the films in the list to your watchlist",
+            value: "watchlist",
+          },
+          {
+            key: "l",
+            name: "Log the films in the list",
+            value: "log",
+          },
+        ],
+      },
+    ]);
+
+    const { cardOverride } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "cardOverride",
+        message: "Do you want to manually override any films in the list?",
+        default: false,
+      },
+    ]);
+
     const { data: cards } = await trello.getCardsInList({
       apiKey: trelloAPIKey,
       apiToken: trelloAPIToken,
-      listId: list,
+      listId: list.id,
     });
 
     for (let card of cards) {
-      const { cardAction } = await inquirer.prompt([
-        {
-          type: "expand",
-          name: "cardAction",
-          message: `What would you like to do with ${card.name}?`,
-          choices: [
-            {
-              key: "w",
-              name: "Add the film to your watchlist",
-              value: "watchlist",
-            },
-            {
-              key: "l",
-              name: "Log the film",
-              value: "log",
-            },
-          ],
-        },
-      ]);
+      let action = listAction;
+      if (cardOverride) {
+        const { cardAction } = await inquirer.prompt([
+          {
+            type: "expand",
+            name: "cardAction",
+            message: `What would you like to do with ${card.name}?`,
+            choices: [
+              {
+                key: "w",
+                name: "Add the film to your watchlist",
+                value: "watchlist",
+              },
+              {
+                key: "l",
+                name: "Log the film",
+                value: "log",
+              },
+            ],
+          },
+        ]);
+        action = cardAction;
+      }
 
-      switch (cardAction) {
+      switch (action) {
+        case "watchlist":
+        // TODO: helper function watchlist card
+        case "log":
         default:
-          console.log(cardAction);
+          console.log(action, card.name);
+          // TODO: helper function log card
           break;
       }
     }

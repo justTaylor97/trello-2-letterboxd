@@ -70,7 +70,7 @@ var inquirer_1 = __importDefault(require("inquirer"));
 var trelloAPIToken = "bba78b5730770b99673f5aee249425b1e409d77849baf3afb03dec203ae27fd4";
 var trelloAPIKey = "2f024004d590ddf687f7bd40d1ab1e7d";
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var myBoards, boardId, boardLists, listsToScrape, _i, listsToScrape_1, list, cards, _a, cards_1, card, cardAction;
+    var myBoards, boardId, boardLists, listsToScrape, _i, listsToScrape_1, list, listAction, cardOverride, cards, _a, cards_1, card, action, cardAction;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0: return [4 /*yield*/, trello.getMyBoards({
@@ -108,7 +108,7 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                             name: "listsToScrape",
                             message: "What lists would you like to scrape?",
                             choices: boardLists.map(function (list) {
-                                return { name: list.name, value: list.id, checked: false };
+                                return { name: list.name, value: list, checked: false };
                             }),
                         },
                     ])];
@@ -118,20 +118,53 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                 _i = 0, listsToScrape_1 = listsToScrape;
                 _b.label = 5;
             case 5:
-                if (!(_i < listsToScrape_1.length)) return [3 /*break*/, 11];
+                if (!(_i < listsToScrape_1.length)) return [3 /*break*/, 14];
                 list = listsToScrape_1[_i];
+                return [4 /*yield*/, inquirer_1.default.prompt([
+                        {
+                            type: "expand",
+                            name: "listAction",
+                            message: "What would you like to do with ".concat(list.name, "?"),
+                            choices: [
+                                {
+                                    key: "w",
+                                    name: "Add the films in the list to your watchlist",
+                                    value: "watchlist",
+                                },
+                                {
+                                    key: "l",
+                                    name: "Log the films in the list",
+                                    value: "log",
+                                },
+                            ],
+                        },
+                    ])];
+            case 6:
+                listAction = (_b.sent()).listAction;
+                return [4 /*yield*/, inquirer_1.default.prompt([
+                        {
+                            type: "confirm",
+                            name: "cardOverride",
+                            message: "Do you want to manually override any films in the list?",
+                            default: false,
+                        },
+                    ])];
+            case 7:
+                cardOverride = (_b.sent()).cardOverride;
                 return [4 /*yield*/, trello.getCardsInList({
                         apiKey: trelloAPIKey,
                         apiToken: trelloAPIToken,
-                        listId: list,
+                        listId: list.id,
                     })];
-            case 6:
+            case 8:
                 cards = (_b.sent()).data;
                 _a = 0, cards_1 = cards;
-                _b.label = 7;
-            case 7:
-                if (!(_a < cards_1.length)) return [3 /*break*/, 10];
+                _b.label = 9;
+            case 9:
+                if (!(_a < cards_1.length)) return [3 /*break*/, 13];
                 card = cards_1[_a];
+                action = listAction;
+                if (!cardOverride) return [3 /*break*/, 11];
                 return [4 /*yield*/, inquirer_1.default.prompt([
                         {
                             type: "expand",
@@ -151,21 +184,28 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                             ],
                         },
                     ])];
-            case 8:
+            case 10:
                 cardAction = (_b.sent()).cardAction;
-                switch (cardAction) {
+                action = cardAction;
+                _b.label = 11;
+            case 11:
+                switch (action) {
+                    case "watchlist":
+                    // TODO: helper function watchlist card
+                    case "log":
                     default:
-                        console.log(cardAction);
+                        console.log(action, card.name);
+                        // TODO: helper function log card
                         break;
                 }
-                _b.label = 9;
-            case 9:
+                _b.label = 12;
+            case 12:
                 _a++;
-                return [3 /*break*/, 7];
-            case 10:
+                return [3 /*break*/, 9];
+            case 13:
                 _i++;
                 return [3 /*break*/, 5];
-            case 11: return [2 /*return*/];
+            case 14: return [2 /*return*/];
         }
     });
 }); };
