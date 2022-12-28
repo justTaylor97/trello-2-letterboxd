@@ -1,5 +1,8 @@
 import * as trello from "./utils/trello";
 import inquirer from "inquirer";
+import { logFilmFromCard } from "./utils/helpers";
+import { TrelloCard } from "./utils/trello.types";
+import { LetterboxdReviewCSV } from "./utils/letterboxd.types";
 
 // TODO: get trello board
 // TODO: iterate over board lists, ask if convert or not (maybe convert mode? Log vs watchlist)
@@ -45,9 +48,9 @@ export const main = async () => {
       }),
     },
   ]);
-  console.log(listsToScrape);
 
   // TODO: actions for entire lists to set the default?
+  const reviews: LetterboxdReviewCSV[] = [];
   for (let list of listsToScrape) {
     const { listAction } = await inquirer.prompt([
       {
@@ -84,7 +87,7 @@ export const main = async () => {
       listId: list.id,
     });
 
-    for (let card of cards) {
+    for (let card of cards as TrelloCard[]) {
       let action = listAction;
       if (cardOverride) {
         const { cardAction } = await inquirer.prompt([
@@ -110,19 +113,21 @@ export const main = async () => {
       }
 
       switch (action) {
-        case "watchlist":
-        // TODO: helper function watchlist card
         case "log":
+          let review = await logFilmFromCard(card);
+          reviews.push(review);
+          break;
+        case "watchlist":
+        // TODO: helper function add card to watchlist
         default:
           console.log(action, card.name);
-          // TODO: helper function log card
           break;
       }
     }
+    console.log(reviews);
+    // TODO: put into arrays and confirm first?
+    // TODO: write CSV
   }
-
-  // TODO: checkmark which lists to scrape, default all true.
-  // TODO: scrape options for watchlist or other letterboxd lists.
 };
 
 main();

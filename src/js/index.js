@@ -65,21 +65,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.main = void 0;
 var trello = __importStar(require("./utils/trello"));
 var inquirer_1 = __importDefault(require("inquirer"));
+var helpers_1 = require("./utils/helpers");
 // TODO: get trello board
 // TODO: iterate over board lists, ask if convert or not (maybe convert mode? Log vs watchlist)
 var trelloAPIToken = "bba78b5730770b99673f5aee249425b1e409d77849baf3afb03dec203ae27fd4";
 var trelloAPIKey = "2f024004d590ddf687f7bd40d1ab1e7d";
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var myBoards, boardId, boardLists, listsToScrape, _i, listsToScrape_1, list, listAction, cardOverride, cards, _a, cards_1, card, action, cardAction;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var myBoards, boardId, boardLists, listsToScrape, reviews, _i, listsToScrape_1, list, listAction, cardOverride, cards, _a, _b, card, action, cardAction, _c, review;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0: return [4 /*yield*/, trello.getMyBoards({
                     fields: ["id", "name"],
                     apiKey: trelloAPIKey,
                     apiToken: trelloAPIToken,
                 })];
             case 1:
-                myBoards = (_b.sent()).data;
+                myBoards = (_d.sent()).data;
                 return [4 /*yield*/, inquirer_1.default.prompt([
                         {
                             type: "list",
@@ -94,14 +95,14 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                         },
                     ])];
             case 2:
-                boardId = (_b.sent()).boardId;
+                boardId = (_d.sent()).boardId;
                 return [4 /*yield*/, trello.getBoardLists({
                         apiKey: trelloAPIKey,
                         apiToken: trelloAPIToken,
                         boardId: boardId,
                     })];
             case 3:
-                boardLists = (_b.sent()).data;
+                boardLists = (_d.sent()).data;
                 return [4 /*yield*/, inquirer_1.default.prompt([
                         {
                             type: "checkbox",
@@ -113,12 +114,12 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                         },
                     ])];
             case 4:
-                listsToScrape = (_b.sent()).listsToScrape;
-                console.log(listsToScrape);
+                listsToScrape = (_d.sent()).listsToScrape;
+                reviews = [];
                 _i = 0, listsToScrape_1 = listsToScrape;
-                _b.label = 5;
+                _d.label = 5;
             case 5:
-                if (!(_i < listsToScrape_1.length)) return [3 /*break*/, 14];
+                if (!(_i < listsToScrape_1.length)) return [3 /*break*/, 18];
                 list = listsToScrape_1[_i];
                 return [4 /*yield*/, inquirer_1.default.prompt([
                         {
@@ -140,7 +141,7 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                         },
                     ])];
             case 6:
-                listAction = (_b.sent()).listAction;
+                listAction = (_d.sent()).listAction;
                 return [4 /*yield*/, inquirer_1.default.prompt([
                         {
                             type: "confirm",
@@ -150,19 +151,19 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                         },
                     ])];
             case 7:
-                cardOverride = (_b.sent()).cardOverride;
+                cardOverride = (_d.sent()).cardOverride;
                 return [4 /*yield*/, trello.getCardsInList({
                         apiKey: trelloAPIKey,
                         apiToken: trelloAPIToken,
                         listId: list.id,
                     })];
             case 8:
-                cards = (_b.sent()).data;
-                _a = 0, cards_1 = cards;
-                _b.label = 9;
+                cards = (_d.sent()).data;
+                _a = 0, _b = cards;
+                _d.label = 9;
             case 9:
-                if (!(_a < cards_1.length)) return [3 /*break*/, 13];
-                card = cards_1[_a];
+                if (!(_a < _b.length)) return [3 /*break*/, 16];
+                card = _b[_a];
                 action = listAction;
                 if (!cardOverride) return [3 /*break*/, 11];
                 return [4 /*yield*/, inquirer_1.default.prompt([
@@ -185,27 +186,34 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                         },
                     ])];
             case 10:
-                cardAction = (_b.sent()).cardAction;
+                cardAction = (_d.sent()).cardAction;
                 action = cardAction;
-                _b.label = 11;
+                _d.label = 11;
             case 11:
-                switch (action) {
-                    case "watchlist":
-                    // TODO: helper function watchlist card
-                    case "log":
-                    default:
-                        console.log(action, card.name);
-                        // TODO: helper function log card
-                        break;
+                _c = action;
+                switch (_c) {
+                    case "log": return [3 /*break*/, 12];
+                    case "watchlist": return [3 /*break*/, 14];
                 }
-                _b.label = 12;
-            case 12:
+                return [3 /*break*/, 14];
+            case 12: return [4 /*yield*/, (0, helpers_1.logFilmFromCard)(card)];
+            case 13:
+                review = _d.sent();
+                reviews.push(review);
+                return [3 /*break*/, 15];
+            case 14:
+                console.log(action, card.name);
+                return [3 /*break*/, 15];
+            case 15:
                 _a++;
                 return [3 /*break*/, 9];
-            case 13:
+            case 16:
+                console.log(reviews);
+                _d.label = 17;
+            case 17:
                 _i++;
                 return [3 /*break*/, 5];
-            case 14: return [2 /*return*/];
+            case 18: return [2 /*return*/];
         }
     });
 }); };
